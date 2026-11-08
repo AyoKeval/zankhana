@@ -8,9 +8,21 @@
             'url' => '#',
             'pattern' => 'guidelines/*',
             'children' => [
-                ['label' => 'Author Guidelines', 'url' => route('guidelines', 'author-guidelines'), 'pattern' => 'guidelines/author-guidelines'],
-                ['label' => 'Manuscript Template Part A', 'url' => route('guidelines', 'manuscript-template-part-a'), 'pattern' => 'guidelines/manuscript-template-part-a'],
-                ['label' => 'Manuscript Template Part B', 'url' => route('guidelines', 'manuscript-template-part-b'), 'pattern' => 'guidelines/manuscript-template-part-b'],
+                [
+                    'label' => 'Author Guidelines',
+                    'url' => route('guidelines', 'author-guidelines'),
+                    'pattern' => 'guidelines/author-guidelines',
+                ],
+                [
+                    'label' => 'Manuscript Template Part A',
+                    'url' => route('guidelines', 'manuscript-template-part-a'),
+                    'pattern' => 'guidelines/manuscript-template-part-a',
+                ],
+                [
+                    'label' => 'Manuscript Template Part B',
+                    'url' => route('guidelines', 'manuscript-template-part-b'),
+                    'pattern' => 'guidelines/manuscript-template-part-b',
+                ],
             ],
         ],
         ['label' => 'Board', 'url' => url('board'), 'pattern' => 'board'],
@@ -37,7 +49,8 @@
                             @if (!empty($item['children']))
                                 <svg class="w-3 h-3 transition-transform group-hover:rotate-180" fill="none"
                                     stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9 6 6 6-6" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="m6 9 6 6 6-6" />
                                 </svg>
                             @endif
                         </a>
@@ -94,40 +107,38 @@
                         collect($item['children'])->contains(fn($child) => request()->url() === $child['url']);
                 @endphp
 
-                <div class="uppercase">
+                <div class="">
 
                     {{-- Main menu item --}}
                     <div class="flex items-center">
-                        <a href="{{ $hasChildren ? '#' : $item['url'] }}" @if ($isActive || $isChildActive)
-                        aria-current="page" @endif @if ($hasChildren) data-submenu-trigger="{{ $submenuId }}" @endif
-                            class="flex-1 block px-4 py-3 text-xs font-bold rounded-lg transition {{ $isActive || $isChildActive ? 'bg-ugcOrange text-white' : 'text-ugcOrange py-2 hover:bg-ugcOrange' }}">
-                            {{ $item['label'] }}
-                        </a>
-
                         @if ($hasChildren)
                             <button type="button" data-submenu-button="{{ $submenuId }}"
-                                aria-expanded="{{ $isChildActive ? 'true' : 'false' }}" aria-controls="{{ $submenuId }}"
-                                aria-label="Toggle {{ $item['label'] }} submenu"
-                                class="px-4 py-3 rounded-lg bg-ugcOrange text-white">
-                                <svg class="w-4 h-4 transition-transform {{ $isChildActive ? 'rotate-180' : '' }}" data-chevron
-                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9 6 6 6-6" />
-                                </svg>
+                                aria-expanded="{{ $isChildActive ? 'true' : 'false' }}"
+                                aria-controls="{{ $submenuId }}" aria-label="Toggle {{ $item['label'] }} submenu"
+                                class="flex-1 block px-4 py-3 text-xs font-bold rounded-lg transition uppercase text-start {{ $isActive || $isChildActive ? 'bg-ugcOrange text-white' : 'text-ugcOrange py-2 hover:bg-ugcOrange hover:text-white' }}">
+                                {{ $item['label'] }}
                             </button>
+                        @else
+                            <a href="{{ $hasChildren ? '#' : $item['url'] }}"
+                                @if ($isActive || $isChildActive) aria-current="page" @endif
+                                @if ($hasChildren)  @endif
+                                class="flex-1 block px-4 py-3 text-xs font-bold rounded-lg transition uppercase{{ $isActive || $isChildActive ? 'bg-ugcOrange text-white' : 'text-ugcOrange py-2 hover:bg-ugcOrange hover:text-white' }}">
+                                {{ $item['label'] }}
+                            </a>
                         @endif
                     </div>
 
                     {{-- Expandable submenu --}}
                     @if ($hasChildren)
                         <div id="{{ $submenuId }}"
-                            class="{{ $isChildActive ? '' : 'hidden' }} bg-ugcOrange px-2 py-2 rounded-lg">
+                            class="{{ $isChildActive ? '' : 'hidden' }} border border-ugcOrange px-2 py-2 rounded-lg">
                             @foreach ($item['children'] as $child)
                                 @php
                                     $childActive = request()->url() === $child['url'];
                                 @endphp
 
                                 <a href="{{ $child['url'] }}"
-                                    class="block px-3 py-2 text-sm border-b border-white/30 last:border-b-0 rounded-md {{ request()->is($child['pattern']) ? 'bg-white text-ugcOrange' : 'hover:bg-white text-white hover:text-ugcOrange' }}">
+                                    class="block px-3 py-2 text-sm border-b border-white/30 last:border-b-0 rounded-md {{ request()->is($child['pattern']) ? 'bg-ugcOrange text-white' : 'text-ugcOrange bg-white hover:bg-ugcOrange hover:text-white' }}">
                                     {{ $child['label'] }}
                                 </a>
                             @endforeach
@@ -142,7 +153,8 @@
         {{-- Mobile Search --}}
         <div class="p-4 border-t border-gray-100">
             <form action="{{ url('search') }}" method="GET" class="relative">
-                <input type="text" name="q" value="{{ request('q') }}" placeholder="Search Articles, Authors..."
+                <input type="text" name="q" value="{{ request('q') }}"
+                    placeholder="Search Articles, Authors..."
                     class="w-full bg-gray-100 rounded-lg py-3 px-4 pr-14 text-gray-900 focus:outline-none focus:ring-2 focus:ring-ugcOrange">
                 <button type="submit" class="absolute right-3 top-3 text-ugcOrange font-bold"> GO</button>
             </form>
@@ -151,7 +163,7 @@
 </nav>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
         const btn = document.getElementById('mobile-menu-button');
         const menu = document.getElementById('mobile-menu');
         const icon = document.getElementById('menu-icon');
@@ -167,24 +179,24 @@
             icon.setAttribute('d', isOpen ? closePath : hamburgerPath);
         }
 
-        btn.addEventListener('click', function () {
+        btn.addEventListener('click', function() {
             setMenuOpen(menu.classList.contains('hidden'));
         });
 
-        menu.querySelectorAll('a').forEach(function (link) {
-            link.addEventListener('click', function () {
+        menu.querySelectorAll('a').forEach(function(link) {
+            link.addEventListener('click', function() {
                 setMenuOpen(false);
             });
         });
 
-        window.addEventListener('resize', function () {
+        window.addEventListener('resize', function() {
             if (window.innerWidth >= 768) {
                 setMenuOpen(false);
             }
         });
 
-        document.querySelectorAll('[data-submenu-button]').forEach(function (button) {
-            button.addEventListener('click', function () {
+        document.querySelectorAll('[data-submenu-button]').forEach(function(button) {
+            button.addEventListener('click', function() {
                 const submenuId = button.dataset.submenuButton;
                 const submenu = document.getElementById(submenuId);
                 const chevron = button.querySelector('[data-chevron]');
@@ -202,8 +214,8 @@
             });
         });
 
-        document.querySelectorAll('[data-submenu-trigger]').forEach(function (link) {
-            link.addEventListener('click', function (event) {
+        document.querySelectorAll('[data-submenu-trigger]').forEach(function(link) {
+            link.addEventListener('click', function(event) {
                 event.preventDefault();
 
                 const submenuId = link.dataset.submenuTrigger;

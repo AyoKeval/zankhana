@@ -23,27 +23,60 @@
         <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
             <div class="flex overflow-x-auto border-b border-gray-200 hide-scrollbar bg-gray-50/50">
                 <button
-                    class="tab-btn px-3 md:px-6 py-4 text-sm font-bold uppercase tracking-widest transition-all border-b-2 whitespace-nowrap text-ugcOrange border-ugcOrange"
+                    class="tab-btn px-4 py-3 sm:py-4 text-sm font-bold uppercase tracking-widest transition-all border-b-2 whitespace-nowrap text-ugcOrange border-ugcOrange"
                     onclick="showTab('editorial', this)">Editorial Board</button>
-                <button
-                    class="tab-btn px-3 md:px-6 py-4 text-sm font-bold uppercase tracking-widest transition-all border-b-2 border-transparent text-gray-400 hover:text-gray-600 whitespace-nowrap"
-                    onclick="showTab('overseas', this)">Overseas Board</button>
-                <button
-                    class="tab-btn px-3 md:px-6 py-4 text-sm font-bold uppercase tracking-widest transition-all border-b-2 border-transparent text-gray-400 hover:text-gray-600 whitespace-nowrap"
-                    onclick="showTab('advisory', this)">Advisory Board</button>
-                <button
-                    class="tab-btn px-3 md:px-6 py-4 text-sm font-bold uppercase tracking-widest transition-all border-b-2 border-transparent text-gray-400 hover:text-gray-600 whitespace-nowrap"
-                    onclick="showTab('review', this)">Review Committee</button>
+                @if ($groupedMembers->has('overseas') && $groupedMembers->get('overseas')->isNotEmpty())
+                    <button
+                        class="tab-btn px-4 py-3 sm:py-4 text-sm font-bold uppercase tracking-widest transition-all border-b-2 border-transparent text-gray-400 whitespace-nowrap"
+                        onclick="showTab('overseas', this)">Overseas Board</button>
+                @endif
+                @if ($groupedMembers->has('advisory') && $groupedMembers->get('advisory')->isNotEmpty())
+                    <button
+                        class="tab-btn px-4 py-3 sm:py-4 text-sm font-bold uppercase tracking-widest transition-all border-b-2 border-transparent text-gray-400 whitespace-nowrap"
+                        onclick="showTab('advisory', this)">Advisory Board</button>
+                @endif
+                @if ($groupedMembers->has('review') && $groupedMembers->get('review')->isNotEmpty())
+                    <button
+                        class="tab-btn px-4 py-3 sm:py-4 text-sm font-bold uppercase tracking-widest transition-all border-b-2 border-transparent text-gray-400 whitespace-nowrap"
+                        onclick="showTab('review', this)">Review Committee</button>
+                @endif
                 @if ($groupedMembers->has('other') && $groupedMembers->get('other')->isNotEmpty())
                     <button
-                        class="tab-btn px-3 md:px-6 py-4 text-sm font-bold uppercase tracking-widest transition-all border-b-2 border-transparent text-gray-400 hover:text-gray-600 whitespace-nowrap"
+                        class="tab-btn px-4 py-3 sm:py-4 text-sm font-bold uppercase tracking-widest transition-all border-b-2 border-transparent text-gray-400 whitespace-nowrap"
                         onclick="showTab('other', this)">Other Experts</button>
                 @endif
             </div>
 
             <div class="p-4 md:p-8">
+                <!-- Search & Filter Bar -->
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                    <div class="relative w-full max-w-md">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                            <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                        <input type="text" id="boardFilterInput"
+                            placeholder="Filter by name, designation, or institution..." autocomplete="off"
+                            class="w-full pl-10 pr-9 py-2.5 rounded-xl border border-gray-200 bg-gray-50/70 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-ugcOrange focus:bg-white focus:ring-2 focus:ring-ugcOrange/20 transition-all" />
+                        <button type="button" id="clearFilterBtn" onclick="clearBoardFilter()"
+                            class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 hidden cursor-pointer"
+                            title="Clear filter">
+                            <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="text-xs text-gray-500 font-medium self-end sm:self-auto flex items-center gap-1.5">
+                        <span id="filterCountDisplay">Showing all members</span>
+                    </div>
+                </div>
+
                 <!-- TAB 1: Editorial Board -->
-                <div id="tab-editorial" class="tab-panel space-y-8">
+                <div id="tab-editorial" class="tab-panel space-y-4">
                     @php
                         $editorialAll = $groupedMembers->get('editorial', collect());
                         $chiefEditors = $editorialAll->filter(
@@ -58,9 +91,13 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             @foreach ($chiefEditors as $index => $editor)
                                 <div onclick="openMemberModal({{ $editor->id }})"
-                                    class="flex flex-col sm:flex-row gap-4 p-4 rounded-xl border {{ $index === 0 ? 'border-ugcOrange/20 bg-orange-50/30' : 'border-gray-200 bg-gray-50/50' }} hover:border-ugcOrange/40 cursor-pointer transition-all">
+                                    data-name="{{ strtolower($editor->name) }}"
+                                    data-designation="{{ strtolower($editor->designation ?? '') }}"
+                                    data-institution="{{ strtolower($editor->institution ?? '') }}"
+                                    data-search="{{ strtolower($editor->name . ' ' . ($editor->designation ?? '') . ' ' . ($editor->institution ?? '')) }}"
+                                    class="leadership-card mt-4 flex flex-col sm:flex-row gap-4 p-4 rounded-xl border {{ $index === 0 ? 'border-ugcOrange/20 bg-orange-50/30' : 'border-gray-200 bg-gray-50/50' }} hover:border-ugcOrange/40 cursor-pointer transition-all">
                                     <div
-                                        class="w-12 h-12 shrink-0 rounded-full {{ $index === 0 ? 'bg-ugcOrange shadow-md shadow-orange-200' : 'bg-gray-800' }} flex items-center justify-center text-white font-black text-lg">
+                                        class="w-12 h-12 shrink-0 rounded-full {{ $index === 0 ? 'bg-ugcOrange shadow-md shadow-orange-200' : 'bg-gray-800' }} hidden sm:flex items-center justify-center text-white font-black text-lg">
                                         {{ substr(trim(str_replace(['Dr.', 'Prof.', 'Rt.'], '', $editor->name)), 0, 1) }}
                                     </div>
                                     <div>
@@ -78,67 +115,59 @@
                     @endif
 
                     <div>
-                        <h3 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-6 flex items-center gap-4">
+                        <h3 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-4 flex items-center gap-4">
                             Board Members <span class="h-[1px] flex-grow bg-gray-100"></span>
                         </h3>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            @foreach ($editorialMembers as $index => $member)
-                                @include('web.partials.board-member-card', [
-                                    'member' => $member,
-                                    'iteration' => $index + 1,
-                                ])
-                            @endforeach
-                        </div>
+                        @include('web.partials.board-member-table', [
+                            'members' => $editorialMembers,
+                            'startNumber' => $chiefEditors->count() + 1,
+                        ])
                     </div>
                 </div>
 
                 <!-- TAB 2: Overseas Board -->
-                <div id="tab-overseas" class="tab-panel hidden">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        @foreach ($groupedMembers->get('overseas', collect()) as $index => $member)
-                            @include('web.partials.board-member-card', [
-                                'member' => $member,
-                                'iteration' => $index + 1,
-                            ])
-                        @endforeach
-                    </div>
+                <div id="tab-overseas" class="tab-panel mt-4 hidden">
+                    <h3 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-4 flex items-center gap-4">
+                        Overseas Board <span class="h-[1px] flex-grow bg-gray-100"></span>
+                    </h3>
+                    @include('web.partials.board-member-table', [
+                        'members' => $groupedMembers->get('overseas', collect()),
+                        'startNumber' => 1,
+                    ])
                 </div>
 
                 <!-- TAB 3: Advisory Board -->
-                <div id="tab-advisory" class="tab-panel hidden">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        @foreach ($groupedMembers->get('advisory', collect()) as $index => $member)
-                            @include('web.partials.board-member-card', [
-                                'member' => $member,
-                                'iteration' => $index + 1,
-                            ])
-                        @endforeach
-                    </div>
+                <div id="tab-advisory" class="tab-panel mt-4 hidden">
+                    <h3 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-4 flex items-center gap-4">
+                        Advisory Board <span class="h-[1px] flex-grow bg-gray-100"></span>
+                    </h3>
+                    @include('web.partials.board-member-table', [
+                        'members' => $groupedMembers->get('advisory', collect()),
+                        'startNumber' => 1,
+                    ])
                 </div>
 
                 <!-- TAB 4: Review Committee -->
-                <div id="tab-review" class="tab-panel hidden">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        @foreach ($groupedMembers->get('review', collect()) as $index => $member)
-                            @include('web.partials.board-member-card', [
-                                'member' => $member,
-                                'iteration' => $index + 1,
-                            ])
-                        @endforeach
-                    </div>
+                <div id="tab-review" class="tab-panel mt-4 hidden">
+                    <h3 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-4 flex items-center gap-4">
+                        Review Committee <span class="h-[1px] flex-grow bg-gray-100"></span>
+                    </h3>
+                    @include('web.partials.board-member-table', [
+                        'members' => $groupedMembers->get('review', collect()),
+                        'startNumber' => 1,
+                    ])
                 </div>
 
                 <!-- TAB 5: Other Experts -->
                 @if ($groupedMembers->has('other') && $groupedMembers->get('other')->isNotEmpty())
-                    <div id="tab-other" class="tab-panel hidden">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            @foreach ($groupedMembers->get('other', collect()) as $index => $member)
-                                @include('web.partials.board-member-card', [
-                                    'member' => $member,
-                                    'iteration' => $index + 1,
-                                ])
-                            @endforeach
-                        </div>
+                    <div id="tab-other" class="tab-panel mt-4 hidden">
+                        <h3 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-4 flex items-center gap-4">
+                            Other Experts <span class="h-[1px] flex-grow bg-gray-100"></span>
+                        </h3>
+                        @include('web.partials.board-member-table', [
+                            'members' => $groupedMembers->get('other', collect()),
+                            'startNumber' => 1,
+                        ])
                     </div>
                 @endif
             </div>
@@ -293,7 +322,86 @@
 
             btn.classList.add('text-ugcOrange', 'border-ugcOrange');
             btn.classList.remove('text-gray-400', 'border-transparent');
+
+            // Re-apply filter on tab switch
+            applyBoardFilter();
         }
+
+        // Live Filter Logic (filters Name, Designation, and Institution)
+        const filterInput = document.getElementById('boardFilterInput');
+        const clearBtn = document.getElementById('clearFilterBtn');
+        const countDisplay = document.getElementById('filterCountDisplay');
+
+        function applyBoardFilter() {
+            const query = (filterInput ? filterInput.value : '').toLowerCase().trim();
+
+            if (clearBtn) {
+                clearBtn.classList.toggle('hidden', query === '');
+            }
+
+            const activePanel = document.querySelector('.tab-panel:not(.hidden)');
+            if (!activePanel) return;
+
+            // Filter leadership cards if in this panel
+            const leadershipCards = activePanel.querySelectorAll('.leadership-card');
+            let visibleLeadership = 0;
+            leadershipCards.forEach(card => {
+                const name = (card.getAttribute('data-name') || '').toLowerCase();
+                const designation = (card.getAttribute('data-designation') || '').toLowerCase();
+                const institution = (card.getAttribute('data-institution') || '').toLowerCase();
+                const text = card.getAttribute('data-search') || `${name} ${designation} ${institution}`;
+
+                const matches = query === '' || text.includes(query);
+                card.style.display = matches ? '' : 'none';
+                if (matches) visibleLeadership++;
+            });
+
+            // Filter table rows
+            const rows = activePanel.querySelectorAll('.member-row');
+            let visibleRows = 0;
+            rows.forEach(row => {
+                const name = (row.getAttribute('data-name') || '').toLowerCase();
+                const designation = (row.getAttribute('data-designation') || '').toLowerCase();
+                const institution = (row.getAttribute('data-institution') || '').toLowerCase();
+                const text = row.getAttribute('data-search') || `${name} ${designation} ${institution}`;
+
+                const matches = query === '' || text.includes(query);
+                row.style.display = matches ? '' : 'none';
+                if (matches) visibleRows++;
+            });
+
+            // Show/hide "No members matching" row
+            const noMatchRows = activePanel.querySelectorAll('.no-filter-match');
+            noMatchRows.forEach(noMatch => {
+                noMatch.classList.toggle('hidden', visibleRows > 0 || query === '');
+            });
+
+            // Update count display
+            const totalVisible = visibleRows + visibleLeadership;
+            const totalInPanel = rows.length + leadershipCards.length;
+            if (countDisplay) {
+                if (query === '') {
+                    countDisplay.textContent = `Showing all members (${totalInPanel})`;
+                } else {
+                    countDisplay.textContent = `Found ${totalVisible} of ${totalInPanel} members`;
+                }
+            }
+        }
+
+        function clearBoardFilter() {
+            if (filterInput) {
+                filterInput.value = '';
+                applyBoardFilter();
+                filterInput.focus();
+            }
+        }
+
+        if (filterInput) {
+            filterInput.addEventListener('input', applyBoardFilter);
+        }
+
+        // Initialize count on page load
+        document.addEventListener('DOMContentLoaded', applyBoardFilter);
 
         // Open Modal with Member Details
         function openMemberModal(id) {

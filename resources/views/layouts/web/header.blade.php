@@ -33,9 +33,8 @@
                     <h1
                         class="text-3xl md:text-4xl font-extrabold text-ugcOrange tracking-tight uppercase leading-none mb-1">
                         Zankhana</h1>
-                    <p class="text-gray-500 text-sm font-semibold tracking-wide uppercase">International e-Journal
-                        (Peer
-                        Reviewed) | Powered by Ayo Softech</p>
+                    <p class="text-gray-500 text-sm font-semibold tracking-wide">
+                        International e-Journal (Peer Reviewed) | Powered by AyoSoftech</p>
                 </div>
             </div>
             <div class="hidden lg:flex items-center space-x-6 shrink-0 text-right">

@@ -34,12 +34,27 @@ Versions follow the format: **`1.MM.DD`** where:
 
 ---
 
-### [Version 1.11.08] (Documentation Directory Reorganization)
+### [Version 1.11.08] (Documentation Directory Reorganization & Editorial Board Table with Live Filter)
 
 #### 🎯 Highlights:
 1. **Documentation Path Relocation to Public Assets:**
    - **Where:** Relocated `private/md/` to `public/md/`
-   - **What:** Moved all project documentation markdown files (`version.md`, `what_i_want.md`) to [`public/md/`](file://booknest/public/md/). Updated local memory and project documentation pointers to track [`public/md/version.md`](file://booknest/public/md/version.md).
+   - **What:** Moved all project documentation markdown files (`version.md`, `what_i_want.md`) to [`public/md/`]. Updated local memory and project documentation pointers to track [`public/md/version.md`].
+
+2. **Editorial Board Table Layout Transformation:**
+   - **Where:** `resources/views/web/board.blade.php` & `resources/views/web/partials/board-member-table.blade.php`
+   - **What:** Replaced the card grid view with a clean academic table format across all committee tabs (`editorial`, `overseas`, `advisory`, `review`, and `other`). Columns feature:
+     - `Sr.No.`: Formatted sequence number (`01`, `02`, etc.)
+     - `Name of member`: Scholar's full name in bold, accompanied by designation and institutional affiliation
+     - `View`: Direct action button with eye icon opening the interactive modal dialog containing full scholar credentials and profiles (university, subject expertise, email, address, Google Scholar, ResearchGate, Scopus ID, ORCID/Vidwan).
+
+3. **Real-Time Live Filter by Name, Designation, and Institution:**
+   - **Where:** `resources/views/web/board.blade.php` & `resources/views/web/partials/board-member-table.blade.php`
+   - **What:**
+     - Added an instant client-side search input filter with search icon, clear button (`x`), and dynamic member match counter (`Found X of Y members`).
+     - Added search data attributes (`data-name`, `data-designation`, `data-institution`, and combined `data-search`) across table rows and leadership cards.
+     - Real-time filtering updates as user types without page reloads, works across all active committee tabs, and displays an empty state placeholder ("No members matching your filter") when no results match.
+
 
 ---
 
@@ -285,69 +300,124 @@ booknest/
 │   ├── Http/
 │   │   ├── Controllers/
 │   │   │   ├── Panel/
-│   │   │   │   └── AuthController.php        # Handles login, auth check, and logout
+│   │   │   │   ├── AuthController.php            # Handles admin login, session verification, and logout
+│   │   │   │   ├── BookController.php            # Admin CRUD for publications/manuscripts (upload PDF, edit, toggle active)
+│   │   │   │   └── DashboardController.php       # Admin dashboard KPI metrics, article summary, and stats
 │   │   │   └── Web/
-│   │   │       ├── DashboardController.php   # Handles static pages (home, board, aboutUs, privacy, guidelines, contact, etc.)
-│   │   │       └── BookController.php        # Handles publication/manuscript listing and detail view
+│   │   │       ├── DashboardController.php       # Public static pages (home, board, aboutUs, privacy, guidelines, contact)
+│   │   │       └── BookController.php            # Public publication/manuscript listing, search, and detail viewer
 │   │   └── Middleware/
-│   │       ├── ApiMiddleware.php
-│   │       └── WebMiddleware.php
+│   │       ├── ApiMiddleware.php                 # API request validation middleware
+│   │       ├── NoCacheMiddleware.php             # Prevents back-button browser caching on protected pages
+│   │       ├── PanelMiddleware.php               # Admin authentication and session guard
+│   │       └── WebMiddleware.php                 # Web group core middleware
 │   └── Models/
-│       ├── Book.php                          # Book/Article model (title, author, category, sell_count, is_active)
-│       └── User.php                          # User authentication model
+│       ├── Book.php                              # Publication/Article model (title, author, category, pdf, sell_count, is_active)
+│       ├── EditorialBoard.php                    # Editorial board member model (name, designation, institution, board_type, profiles)
+│       └── User.php                              # Administrative user model
+├── bootstrap/
+│   └── app.php                                   # Application configuration, routing setup (web, panel, console), and middleware aliases
 ├── database/
-│   ├── database.sqlite                       # Active SQLite database file
-│   ├── migrations/                           # Schema definitions
-│   └── seeders/                              # Database seeders
+│   ├── migrations/                               # Database migrations:
+│   │   ├── 0001_01_01_000000_create_tbl_users_table.php
+│   │   ├── 0001_01_01_000001_create_tbl_cache_table.php
+│   │   ├── 0001_01_01_000002_create_tbl_jobs_table.php
+│   │   ├── 2026_05_13_100755_create_tbl_books_table.php
+│   │   ├── 2026_05_13_100940_create_tbl_contact_messages_table.php
+│   │   ├── 2026_06_07_155254_add_user_fields_to_tbl_users_table.php
+│   │   └── 2026_11_07_183626_create_tbl_editorial_board_table.php
+│   └── seeders/                                  # Seeders:
+│       ├── DatabaseSeeder.php                    # Master seeder caller
+│       ├── TblBooksSeeder.php                    # Seeds research books and publications
+│       ├── TblEditorialBoardSeeder.php           # Seeds 20+ editorial board scholars across 5 committee types
+│       └── TblUserSeeder.php                     # Seeds default administrative user
 ├── private/
-│   ├── assets/                               # Official PDF & DOCX source files
-│   ├── md/
-│   │   ├── what_i_want.md                    # Complete project blueprint & functional specification
-│   │   └── version.md                        # This changelog & developer roadmap
-│   └── text/                                 # Raw text extracts of journal policies & templates
+│   ├── assets/                                   # Official PDF & DOCX source files
+│   └── text/                                     # Raw text extracts of journal policies, editorial board, and templates
 ├── public/
+│   ├── assets/                                   # Public UI assets:
+│   │   ├── css/                                  # Public stylesheets
+│   │   ├── js/                                   # Public JavaScript helpers
+│   │   └── img/                                  # Logos, icons, and favicon suite
+│   ├── dist/                                     # Metronic production asset bundle:
+│   │   └── assets/
+│   │       ├── css/styles.css                    # Compiled Metronic Tailwind CSS
+│   │       ├── js/core.bundle.js                 # Metronic core framework bundle
+│   │       └── vendors/                          # KeenIcons, KTUI, ApexCharts libraries
+│   ├── md/                                       # Project documentation:
+│   │   ├── what_i_want.md                        # Complete project blueprint & functional specification
+│   │   └── version.md                            # This changelog & developer roadmap
 │   └── uploads/
+│       ├── pdfs/                                 # Uploaded research publication/manuscript PDF files
 │       └── web/
-│           ├── guidelines/                   # Official downloadable guidelines & template PDFs
+│           ├── guidelines/                       # Official downloadable guidelines & template PDFs
 │           │   ├── author-guidelines.pdf
 │           │   ├── manuscript-template-part-a.pdf
 │           │   └── manuscript-template-part-b.pdf
-│           └── policy/                       # Official downloadable policy PDFs
+│           └── policy/                           # Official downloadable policy PDFs
 │               ├── publication-ethics.pdf
 │               ├── plagiarism-policy.pdf
 │               └── copyright-policy.pdf
 ├── resources/
 │   └── views/
-│       ├── layouts/
-│       │   ├── auth.blade.php                # Authentication layout (updated v1.10.31)
-│       │   ├── web.blade.php                 # Master layout for public site
-│       │   ├── web/
-│       │   │   ├── head.blade.php            # Meta tags & Tailwind CDN setup
-│       │   │   ├── header.blade.php          # Header banner & marquee
-│       │   │   ├── navbar.blade.php          # Top navigation bar & menus (updated v1.10.31)
-│       │   │   └── footer.blade.php          # Global footer
-│       │   └── panel/                        # Admin dashboard layouts
-│       ├── panel/
-│       │   └── auth/
-│       │       └── signin.blade.php          # Redesigned Login Page (updated v1.10.31)
-│       └── web/
-│           ├── home.blade.php                # Public homepage (updated v1.10.11)
-│           ├── aboutUs.blade.php             # Full journal profile & scope (updated v1.10.31)
-│           ├── publication.blade.php         # Frequency & publishing info (updated v1.10.31)
-│           ├── contact.blade.php             # Publisher & editor contacts + form (updated v1.10.31)
-│           ├── guidelines/                   # Author Guidelines & Template Pages (updated v1.10.31)
+│       ├── components/                           # Reusable Blade UI components:
+│       │   └── ui/                               # Metronic UI component suite:
+│       │       ├── badge.blade.php               # <x-ui.badge> (status pills & labels)
+│       │       ├── button.blade.php              # <x-ui.button> (action buttons & links)
+│       │       ├── card.blade.php                # <x-ui.card> (standard Metronic container)
+│       │       ├── input.blade.php               # <x-ui.input> (form inputs with icon & validation)
+│       │       ├── page-header.blade.php         # <x-ui.page-header> (toolbar, title & breadcrumbs)
+│       │       ├── select.blade.php              # <x-ui.select> (dropdown form control)
+│       │       ├── stat-card.blade.php           # <x-ui.stat-card> (KPI metric counters with KeenIcon)
+│       │       └── switch.blade.php              # <x-ui.switch> (toggle switches)
+│       ├── layouts/                              # Master site and panel layouts:
+│       │   ├── auth.blade.php                    # Minimal authentication layout for sign-in
+│       │   ├── panel.blade.php                   # Master Metronic v9.4.6 Demo 6 admin panel layout
+│       │   ├── web.blade.php                     # Master UGC-inspired public website layout
+│       │   ├── panel/                            # Admin panel partials:
+│       │   │   ├── customizer.blade.php          # Metronic theme customizer drawer
+│       │   │   ├── footer.blade.php              # Admin footer with publisher attribution
+│       │   │   ├── head.blade.php                # Admin head (Inter font, CSS & KeenIcons)
+│       │   │   ├── header.blade.php              # Admin top header bar & mobile drawer trigger
+│       │   │   ├── navbar.blade.php              # Admin top secondary navbar
+│       │   │   └── sidebar.blade.php             # Metronic fixed sidebar with collapsible nav & user card
+│       │   └── web/                              # Public website layout partials:
+│       │       ├── footer.blade.php              # Global footer with links & indexing badges
+│       │       ├── head.blade.php                # Meta tags, SEO & Tailwind CDN setup
+│       │       ├── header.blade.php              # UGC-orange header banner with announcement marquee
+│       │       └── navbar.blade.php              # Top responsive navigation bar & dropdowns
+│       ├── panel/                                # Admin panel views:
+│       │   ├── dashboard.blade.php               # Admin overview with KPI cards, charts & quick actions
+│       │   ├── auth/
+│       │   │   └── signin.blade.php              # Metronic classic sign-in page
+│       │   └── books/                            # Publication management CRUD views:
+│       │       ├── create.blade.php              # Add new manuscript/book with PDF upload
+│       │       ├── edit.blade.php                # Edit manuscript metadata & file
+│       │       ├── index.blade.php               # Publications datatable with status toggles
+│       │       └── show.blade.php                # Publication detailed preview
+│       └── web/                                  # Public website views:
+│           ├── aboutUs.blade.php                 # Journal profile, aims, multidisciplinary scope & indexing
+│           ├── board.blade.php                   # Editorial Board with tabs, real-time filter & details modal
+│           ├── books.blade.php                   # Published articles & research paper archive
+│           ├── contact.blade.php                 # Publisher & editorial office contacts + inquiry form
+│           ├── details.blade.php                 # Single article viewer with PDF viewer & citation metadata
+│           ├── home.blade.php                    # Homepage with welcome hero, stats, and latest papers
+│           ├── publication.blade.php             # Publication frequency, peer review policy & ethics
+│           ├── guidelines/                       # Author submission guidelines & templates:
 │           │   ├── author-guidelines.blade.php
 │           │   ├── manuscript-template-part-a.blade.php
 │           │   └── manuscript-template-part-b.blade.php
-│           ├── privacy/                      # Journal Policy Pages (updated v1.10.31)
-│           │   ├── publication-ethics.blade.php
-│           │   ├── plagiarism-policy.blade.php
-│           │   └── copyright-policy.blade.php
-│           ├── board.blade.php               # Editorial board listing
-│           ├── books.blade.php               # Articles/books index
-│           └── details.blade.php             # Single article/book viewer
+│           ├── partials/                         # Reusable public page partials:
+│           │   ├── board-member-card.blade.php   # Editorial board member card view
+│           │   └── board-member-table.blade.php  # Academic table view with filter data attributes
+│           └── privacy/                          # Official journal policy pages:
+│               ├── copyright-policy.blade.php
+│               ├── plagiarism-policy.blade.php
+│               └── publication-ethics.blade.php
 └── routes/
-    └── web.php                               # All frontend and application routes
+    ├── console.php                               # Artisan scheduled tasks and console commands
+    ├── panel.php                                 # Authenticated admin panel routes (dashboard, books, auth)
+    └── web.php                                   # Public journal routes (home, board, publications, policies)
 ```
 
 ---
